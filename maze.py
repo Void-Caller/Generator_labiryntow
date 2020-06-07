@@ -20,14 +20,14 @@ class Maze:
             print("Too small!, maze needs to be at least 3 by 3.")
         except Too_large_exception:
             print("Too large!, maze needs to be at most 30 by 30.")
+        self.x_max = x
+        self.y_max = y
         self.cells = [[True for i in range(x)] for j in range(y)]
         self.entry = entry.copy()
         self.exit = exit.copy()
         self.generate()
-        self.find_linear(entry,exit)
 
     def generate(self):
-        self.cells[self.entry[1]][self.entry[0]] = False
         '''kroki:
         1 - wylosuj trzy punkty (A,B i C) oprocz wyjscia i wejscia
         2 - twórz liniową ścierzkę między entry i A
@@ -37,6 +37,38 @@ class Maze:
         6 - liniowa między B i C
         7 - usuń pokoje
         8 - liniowa między C i exit'''
+        self.cells[self.entry[0]][self.entry[1]] = False
+        #losowanie
+        #Gwarantuję, że współżędne wylosowanych punktów nie pokryją się z wejściem i wyjściem.
+        #Dodatkowo, plasuję je w oddzielnych rzędach, by uniknąć linii prostych.
+        tabx = [i for i in range(self.x_max)]
+        taby = [i for i in range(self.y_max)]
+        tabx.remove(self.entry[0])
+        if self.exit[0] in tabx:
+            tabx.remove(self.exit[0])
+        taby.remove(self.entry[1])
+        if self.exit[1] in taby:
+            taby.remove(self.exit[1])
+        #Wylosowany punkt 1
+        point1 = [random.choice(tabx),random.choice(taby)]
+
+        tabx.remove(point1[0])
+        taby.remove(point1[1])
+
+        point2 = [random.choice(tabx), random.choice(taby)]
+
+        tabx.remove(point2[0])
+        taby.remove(point2[1])
+
+        point3 = [random.choice(tabx), random.choice(taby)]
+
+        self.find_linear(self.entry,point1)
+        self.find_linear(point1,point2)
+        self.room_check()
+        self.find_linear(point2, point3)
+        self.room_check()
+        self.find_linear(point3,self.exit)
+        self.room_check()
 
     def find_linear(self, point_a, point_b):
         y=point_a[1]
@@ -74,11 +106,61 @@ class Maze:
                     y += dy
                     y_b = y - point_b[1]
 
+    def correct_room(self,x,y):
+        '''Sprawdza, czy w danym miejscu znajduje się pokój. Jeśli tak, to go usuwa.
+        False - nic nie znalazł. True - znalazł i naprawił.'''
+        if not self.cells[x][y]:
+            if not self.cells[x][y+1]:
+                if not self.cells[x+1][y]:
+                    if not self.cells[x+1][y+1]:
+                        self.cells[x+random.randint(0,1)][y+random.randint(0,1)] = True
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
 
+    def correct_diagonal(self,x,y):
+        '''Koryguje ścieżki przerwane przez correct_room.
+        False - nic nie skorygował. True - znalazł i skorygował przerwę'''
+        '''if self.cells[x][y]:
+            if self.cells[x+1][y+1]:
+                if self.cells[x][y+1] or self.cells[x+1][y]:
+                    return True
+                elif self.cells[x+1][y]:
+                    return True
+                else:'''
+        if self.cells[x][y] and self.cells[x+1][y+1]:
+            if self.cells[x][y+1] or self.cells[x+1][y]:
+                return False
+            else:
+                d = random.randint(0,1)
+                self.cells[x+d][y+d] = False
+                return True
+        elif self.cells[x][y+1] and self.cells[x+1][y]:
+            if self.cells[x][y] or self.cells[x+1][y+1]:
+                return False
+            else:
+                d = random.randint(0,1)
+                self.cells[x+d][y+(not d)] = False
+                return True
 
-maze = Maze(10, 10,[0, 0],[9, 9])
+    def room_check(self):
+        '''Szuka i usuwa pokoje'''
+        for i in range(self.x_max-1):
+            for j in range(self.y_max-1):
+                self.correct_room(i,j)
+        for i in range(self.x_max-1):
+            for j in range(self.y_max-1):
+                self.correct_diagonal(i,j)
 
-for i in range(10):
-    for j in range(10):
+maze = Maze(20, 20,[0, 0],[0, 3])
+
+for i in range(20):
+    for j in range(20):
         print("#", end=" ") if maze.cells[i][j] else print("@", end=" ")
     print()
