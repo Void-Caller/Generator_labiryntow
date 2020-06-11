@@ -1,4 +1,4 @@
-## Saper
+## Generator Labiryntów
 ### Opis zadania
 *  Główne okno programu zawiera kontrolki pozwalające na wybór wielkości labiryntu
 (liczba pól N na M; para liczb całkowitych nie większych niż 30), wizualizację labiryntu
