@@ -52,7 +52,7 @@ class MyGUI:
     1. Przyjmuję obiekt master typu zwracanego przez tkinter.Tk().
     2. Początkowo zmienna maze = None i inter_points = [].
 
-    enter_input(self) - zczytuje dane z widgetów entry, sprawdza ich
+    enter_input(self) - szczytuje dane z widgetów entry, sprawdza ich
     poprawność, obsługuje wyjątki i, jeśli dane są poprawne, tworzy nowy
     labirynt.
 
@@ -167,9 +167,9 @@ class MyGUI:
 
             # Sprawdzam wymiary labiryntu.
             if dim_tuple[0] < DIM_MIN or dim_tuple[1] < DIM_MIN:
-                raise my_exceptions.ToSmallError
+                raise my_exceptions.TooSmallError
             elif dim_tuple[0] > DIM_MAX or dim_tuple[1] > DIM_MAX:
-                raise my_exceptions.ToLargeError
+                raise my_exceptions.TooLargeError
 
             # Wczzytuję położenie wejścia jako string.
             entry_str = self.entry_entry.get()
@@ -177,6 +177,7 @@ class MyGUI:
             entry_str = entry_str.split(",")
             # Zmieniam tablicę na tuple intigerów.
             # ValueError oznacza zły format inputu.
+            # IndexError oznacza, że podano tylko jedeną liczbę.
             entry_tuple = (int(entry_str[0]), int(entry_str[1]))
 
             # Sprawdzam, czy wejście znajduje się na krawędzi labiryntu.
@@ -205,7 +206,7 @@ class MyGUI:
             # Czy nie są w tym samym punkcie.
             if (entry_tuple[0] is exit_tuple[0] and
                     entry_tuple[1] is exit_tuple[1]):
-                raise my_exceptions.ToCloseError
+                raise my_exceptions.TooCloseError
             # Sprawdzam, czy nie są obok siebie.
             # Są dokładnie 4 przypadki, którę sprawdzam.
             # 2 gdy są w tym samym rzędzie.
@@ -213,13 +214,13 @@ class MyGUI:
                 # Jeśli są sąsiadami.
                 if (entry_tuple[1] is exit_tuple[1] + 1 or
                         entry_tuple[1] is exit_tuple[1] - 1):
-                    raise my_exceptions.ToCloseError
+                    raise my_exceptions.TooCloseError
             # 2 gdy są w tej samej kolumnie.
             elif entry_tuple[1] is exit_tuple[1]:
                 # Jeśli są sąsiadami.
                 if (entry_tuple[0] is exit_tuple[0] + 1 or
                         entry_tuple[0] is exit_tuple[0] - 1):
-                    raise my_exceptions.ToCloseError
+                    raise my_exceptions.TooCloseError
 
             # Generuję labirynt.
             self.maze = maze.Maze(dim_tuple, entry_tuple, exit_tuple)
@@ -228,20 +229,20 @@ class MyGUI:
             self.inter_points = []
             self.draw_maze()
 
-        except my_exceptions.ToLargeError:
+        except my_exceptions.TooLargeError:
             messagebox.showerror("Dimmensions error",
                                  "Maze dimmensions can't be greater than 30.")
-        except my_exceptions.ToSmallError:
+        except my_exceptions.TooSmallError:
             messagebox.showerror("Dimmensions error",
                                  "Maze dimmensions can't be smaller than 5.")
-        except ValueError:
+        except (ValueError, IndexError) as e:
             messagebox.showerror("Format Error",
                                  "Dimmensions must be in IntxInt format\n" +
                                  "Coodinates must be in Int,Int format.")
         except my_exceptions.NotOnEdgeError:
             messagebox.showerror("Coordinates Error",
                                  "Entry and Exit must be on the mazes edge.")
-        except my_exceptions.ToCloseError:
+        except my_exceptions.TooCloseError:
             messagebox.showerror("Coordinates Error",
                                  "Entry and Exit cannot touch.")
 

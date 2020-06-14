@@ -5,7 +5,7 @@ random.seed(time.time())
 
 
 class Maze:
-    """Klasa generująca labirynt. Zawiera funkcjonalność przeszukiwania labiryntu
+    """Klasa generująca labirynt.
 
     Zmienne klasy:
     x_max - wymiar x, krotka 2-elementowa, oba elementy to int.
