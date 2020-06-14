@@ -9,10 +9,39 @@ class Too_large_exception(Exception):
 class Too_small_exception(Exception):
     pass
 
-class Maze:
+class Maze(object):
     '''Klasa generująca labirynt.
-    Zawiera funkcjonalność przeszukiwania labiryntu'''
-    def __init__(self,x,y,entry,exit):
+    Zawiera funkcjonalność przeszukiwania labiryntu
+
+    Zmienne klasy:
+    x_max - wymiar x, krotka 2-elementowa, oba elementy to int.
+    y_max - wymiar y, krotka 2-elementowa, oba elementy to int.
+    cells - 2D array zapisujący ściany i korytarze,
+    odpowiednio jako True i False.
+    entry - współrzędne wejścia, krotka 2-elementowa, oba elementy to int.
+    exit - współrzędne wyjścia, krotka 2-elementowa, oba elementy to int.
+    intermid - tablica punktów pośrednich, krotek (int, int).
+
+    Metody klasy:
+    __init__(self, x, y, entry, exit) - inicjalizuje labirynt.
+
+    generate(self) - generuje labirynt na podstawie zmiennych klasy.
+    Korzysta z losowego algorytmu opartego na deep-first search.
+
+    neighbour_check(self, x, y) - wyszukuje możliwe ruchy
+    dla algorytmu generującego. Zwraca tablicę krotek współrzędnych,
+    odpowiadających dozwolonym krokom.
+
+    exit_check(self) - sprawdza, czy wyjście jest częścią labiryntu.
+    Jeśli nie, zwraca True. Jeśli tak, zwraca False.
+
+    search_check(self, x, y, visited) - sprawdza sąsiadów pola
+    o zadanych współrzędnych dla algorytmu szukającego ścieżek.
+    Zwraca tablicę krotek współrzędnych,
+    do których algorytm przeszukujący może wejść.
+
+    '''
+    def __init__(self, x, y, entry, exit):
         try:
             if x<5 or y<5:
                 raise Too_small_exception
@@ -25,9 +54,9 @@ class Maze:
         self.x_max = x
         self.y_max = y
         self.cells = [[True for i in range(x)] for j in range(y)]
-        self.entry = entry.copy()
-        self.exit = exit.copy()
-        self.generate()
+        self.entry = entry[:]
+        self.exit = exit[:]
+        self.intermid = []
 
     def generate(self):
         '''
@@ -106,7 +135,7 @@ class Maze:
                 else:
                     self.cells[self.exit[1]][self.exit[0] + 1] = False
 
-    def neighbour_check(self,x,y):
+    def neighbour_check(self, x, y):
         '''Wyszukuje i zwraca listę pól,
          do których funkcja generująca może wkroczyć.
          Współżędne zapisywane są w krotkach
@@ -114,9 +143,12 @@ class Maze:
          Funkcja wykrywa granice labiryntu na podstawie zmiennych klasy.
          Jeśli zadane pole jest wejściem, przeprowadze procedurę,
          która zapobiega prostej ścieżce do wyjścia'''
+
         neighbours = []
 
+        #sprawdzam, czy jest to wejście.
         is_entry = (x == self.entry[0] and y == self.entry[1])
+
         #sprawdzam zachodniego sąsiada
         if x - 2 >= 0:
             if self.cells[y][x - 2]:
@@ -185,9 +217,93 @@ class Maze:
                 return False
         return True
 
-maze = Maze(20, 20,[19, 17],[19, 19])
+    def search_check(self, x, y, visited):
+        '''Sprawdza, do których pól funkcja szukająca ścieżki może wejść.
+        Przyjmuje współżędne obecnego punktu.
+        Zwraca listę współżędnych sąsiednich pól, do których można wejść.
+        W przypadku ślepego zaułka, zwraca [].'''
 
-for i in reversed(range(20)):
-    for j in range(20):
-        print("#", end=" ") if maze.cells[i][j] else print("+", end=" ")
-    print()
+        neighbours = []
+
+        #sprawdza zachodniego sąsiada
+        if x - 1 >= 0:
+            #Jeśli sąsiad nie jest murem.
+            if not self.cells[y][x - 1]:
+                #Jeśli sąsiad jest nieodwiedzony
+                if (x - 1, y) not in visited:
+                    neighbours.append((x - 1, y))
+        #sprawdzam wschodniego sąsiada
+        if x + 1 < self.x_max:
+            # Jeśli sąsiad nie jest murem.
+            if not self.cells[y][x + 1]:
+                #Jeśli sąsiad jest nieodwiedzony
+                if (x + 1, y) not in visited:
+                    neighbours.append((x + 1, y))
+        #sprawdzam północnego sąsiada
+        if y + 1 < self.y_max:
+            # Jeśli sąsiad nie jest murem.
+            if not self.cells[y + 1][x]:
+                #Jeśli sąsiad jest nieodwiedzony
+                if (x, y + 1) not in visited:
+                    neighbours.append((x, y + 1))
+        #sprawdzam południowego sąsiada
+        if y - 1 >= 0:
+            # Jeśli sąsiad nie jest murem.
+            if not self.cells[y - 1][x]:
+                #Jeśli sąsiad jest nieodwiedzony
+                if (x, y - 1) not in visited:
+                    neighbours.append((x, y - 1))
+
+        #zwracam tablicę
+        return neighbours
+
+    def deep_search(self, start, end):
+        '''Znajduje ścieżkę między punktami start i end w oparciu o
+        algorytm deep-first search. Zwraca tablicę krotek współżędnych,
+        które odpowiadają kolejnym krokom ścieżki'''
+        xs, ys = start
+        xe, ye = end
+
+        #stos do backtrackingu
+        stack = [(xs, ys)]
+        #lista odwiedzonych pól
+        visited = [(xs, ys)]
+
+        #Szukam dopóki nie dojdę do szukanego pola.
+        #Algorytm generacji gwarantuje,
+        #że mogę wytyczyć trasę między dowolnymi dwoma polami korytarza
+        while (xs is not xe) or (ys is not ye):
+            #Wyznaczam sąsiadów.
+            neighs = self.search_check(xs, ys, visited)
+            #Jeśli mam sąsiada.
+            if neighs:
+                #Wybieram sąsiada.
+                neigh = random.choice(neighs)
+                #Dodaje sąsiada do odwiedzonych.
+                visited.append(neigh)
+                #Dodaję sąsiada do stack w celu backtrackingu.
+                stack.append(neigh)
+                #Przechodzę do sąsiada.
+                xs, ys = neigh
+            else:
+                #Jeśli nie ma sąsiada, to cofam się o do poprzedniego.
+                xs, ys = stack.pop()
+
+        #Zwracam stack, w którym znajduje się ścieżka.
+        return stack
+
+
+
+
+if __name__ == '__main__':
+    maze = Maze(10, 10,(0, 0),(3, 0))
+    maze.generate()
+    for i in reversed(range(10)):
+        for j in range(10):
+            print("#", end=" ") if maze.cells[i][j] else print("+", end=" ")
+        print()
+
+    time.sleep(1)
+    path = maze.deep_search((0, 0), (3, 0))
+    for i in path:
+        print(i)
