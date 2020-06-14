@@ -4,7 +4,13 @@ import time
 random.seed(time.time())
 
 
-class Maze:
+class MazeVirt:
+    """Wirtualna klasa labiryntu."""
+    def generate(self):
+        raise NotImplementedError()
+
+
+class Maze(MazeVirt):
     """Klasa generująca labirynt.
 
     Zmienne klasy:
@@ -37,6 +43,7 @@ class Maze:
         exit - wyjście
         """
         self.x_max, self.y_max = coord
+        # Tworzę wypełniony murami labirynt.
         self.cells = [
             [True for i in range(self.x_max)]
             for j in range(self.y_max)]
@@ -61,8 +68,7 @@ class Maze:
         # Gwarantuje, że wyjście jest częścią labiryntu.
 
         # Zapisuje obecne współrzędne.
-        x = self.entry[0]
-        y = self.entry[1]
+        x, y = self.entry
 
         # Pętla generująca labirynt
         while stack:
