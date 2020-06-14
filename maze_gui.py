@@ -11,6 +11,7 @@ DIM_MAX = 30
 # Minimalny wymiar labiryntu.
 DIM_MIN = 5
 
+
 class VirtGUI:
     """Wirtualna klasa GUI"""
     def enter_input(self):
@@ -22,7 +23,8 @@ class VirtGUI:
     def draw_whole_path(self):
         raise NotImplementedError()
 
-class MyGUI:
+
+class MyGUI(VirtGUI):
     """Klasa interface'u graficznego labiryntu
 
     Odpowiada za graficzną reprezentację labiryntu i jego ścieżek.
@@ -265,7 +267,7 @@ class MyGUI:
             x_max = self.maze.x_max
 
             # Dostosowuję rozmiar kanw do liczby pól.
-            dim = lambda x : x * CANVAS_DIM
+            dim = lambda x: x * CANVAS_DIM
             self.canvas_frame.configure(width=dim(x_max),
                                         height=dim(y_max))
             self.maze_canvas.configure(width=dim(x_max),
@@ -399,8 +401,8 @@ class MyGUI:
         # Jeśli istnieje już labirynt.
         if self.maze:
             # Sprowadzenie współżędnych w pixelach do numerów kratek.
-            cutx = lambda x : x // CANVAS_DIM
-            cuty = lambda y : self.maze.y_max - (y // CANVAS_DIM) - 1
+            cutx = lambda x: x // CANVAS_DIM
+            cuty = lambda y: self.maze.y_max - (y // CANVAS_DIM) - 1
             x = cutx(event.x)
             y = cuty(event.y)
 

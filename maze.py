@@ -3,10 +3,12 @@ import time
 
 random.seed(time.time())
 
+
 class MazeVirt:
     """Wirtualna klasa labiryntu."""
     def generate(self):
         raise NotImplementedError()
+
 
 class Maze(MazeVirt):
     """Klasa generująca labirynt.
