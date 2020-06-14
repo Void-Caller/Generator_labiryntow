@@ -33,7 +33,7 @@ cztery pola od przeciwnych, krótszych krawędzi.
 3. Próba wygenerowania labiryntu o wymiarach 10 na 10 z wejściem i wyjściem
 w jednym polu - oczekiwana informacja o błędzie.
 4. Próba wygenerowania labiryntu o wymiarach 10 na 10 z wejściem i wyjściem koło
-siebie - oczekiwana informacja o błędzie, ścieżka jest linią prostą.
+siebie - oczekiwana informacja o błędzie.
 5. Próba wygenerowania labiryntu o wymiarach 10 na 10 z wejściem i wyjściem
 między którymi jest 1, 2 lub 3 pola odstępu - oczekiwany labirynt bez ścieżki będącej
 linią prostą.
