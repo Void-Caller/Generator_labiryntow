@@ -11,6 +11,16 @@ DIM_MAX = 30
 # Minimalny wymiar labiryntu.
 DIM_MIN = 5
 
+class VirtGUI:
+    """Wirtualna klasa GUI"""
+    def enter_input(self):
+        raise NotImplementedError()
+
+    def draw_maze(self):
+        raise NotImplementedError()
+
+    def draw_whole_path(self):
+        raise NotImplementedError()
 
 class MyGUI:
     """Klasa interface'u graficznego labiryntu
@@ -197,9 +207,9 @@ class MyGUI:
 
             # Sprawdzam, czy wyjście znajduje się na krawędzi labiryntu.
             # Jeśli nie jest na krawędzi zachodniej lub wschodniej.
-            if entry_tuple[0] and entry_tuple[0] is not dim_tuple[0] - 1:
+            if exit_tuple[0] and exit_tuple[0] is not dim_tuple[0] - 1:
                 # Jeśli nie jest na krawędzi północnej lub południowej.
-                if entry_tuple[1] and entry_tuple[1] is not dim_tuple[1] - 1:
+                if exit_tuple[1] and exit_tuple[1] is not dim_tuple[1] - 1:
                     raise my_exceptions.NotOnEdgeError
 
             # Sprawdzam, czy wejście i wyjście nie są obok siebie.
@@ -255,10 +265,11 @@ class MyGUI:
             x_max = self.maze.x_max
 
             # Dostosowuję rozmiar kanw do liczby pól.
-            self.canvas_frame.configure(width=x_max * CANVAS_DIM,
-                                        height=y_max * CANVAS_DIM)
-            self.maze_canvas.configure(width=x_max * CANVAS_DIM,
-                                       height=y_max * CANVAS_DIM)
+            dim = lambda x : x * CANVAS_DIM
+            self.canvas_frame.configure(width=dim(x_max),
+                                        height=dim(y_max))
+            self.maze_canvas.configure(width=dim(x_max),
+                                       height=dim(y_max))
 
             # Rysuję labirynt.
             for i in range(y_max):
@@ -388,8 +399,10 @@ class MyGUI:
         # Jeśli istnieje już labirynt.
         if self.maze:
             # Sprowadzenie współżędnych w pixelach do numerów kratek.
-            x = event.x // CANVAS_DIM
-            y = self.maze.y_max - (event.y // CANVAS_DIM) - 1
+            cutx = lambda x : x // CANVAS_DIM
+            cuty = lambda y : self.maze.y_max - (y // CANVAS_DIM) - 1
+            x = cutx(event.x)
+            y = cuty(event.y)
 
             # Jeśli pozycja jest już na liście, to ją usuwam.
             if (x, y) in self.inter_points:
