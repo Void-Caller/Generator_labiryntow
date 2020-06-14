@@ -1,11 +1,16 @@
 import tkinter as tk
+from tkinter import messagebox
 import random
 import time
 import maze
 import my_exceptions
 
-#Wymiar pola na kanwach
+#Wymiar pola na kanwach.
 CANVAS_DIM = 20
+#Maksymalny wymiar labiryntu.
+DIM_MAX = 30
+#Minimalny wymiar labiryntu.
+DIM_MIN = 5
 
 class MyGUI:
     def __init__(self, master):
@@ -68,6 +73,7 @@ class MyGUI:
         self.maze_canvas.bind("<Button-1>", self.set_inter_point)
         self.maze_canvas.pack()
 
+        #Przycisk wyjścia z programu.
         self.close_button = tk.Button(master, text="Close", command=master.quit)
         self.close_button.pack()
 
@@ -79,25 +85,94 @@ class MyGUI:
 
     def enter_input(self):
         """Przyjmuje input i tworzy na jego podstawie labirynt.
-        Ta funkcja odpowiada za wyjątki związane z wymiarami labiryntu i
+
+        Ta funkcja odpowiada za podnoszenie wyjątków związanych z wymiarami labiryntu i
         pozycjami wejścia i wyjścia"""
+        try:
+            # Wczytuję wymiary labiryntu jako string.
+            dim_str = self.dim_entry.get()
+            # Rozdzielam string na tablicę według wzorca.
+            dim_str = dim_str.split("x")
+            # Zmieniam tablicę na tuple intigerów.
+            # ValueError oznacza zły format inputu.
+            dim_tuple = (int(dim_str[0]), int(dim_str[1]))
 
-        dim_str = self.dim_entry.get()
-        dim_str = dim_str.split("x")
-        dim_tuple = (int(dim_str[0]), int(dim_str[1]))
+            # Sprawdzam wymiary labiryntu
+            if dim_tuple[0] < DIM_MIN or dim_tuple[1] < DIM_MIN:
+                raise my_exceptions.ToSmallError
+            elif dim_tuple[0] > DIM_MAX or dim_tuple[1] > DIM_MAX:
+                raise my_exceptions.ToLargeError
 
-        entry_str = self.entry_entry.get()
-        entry_str = entry_str.split(",")
-        entry_tuple = (int(entry_str[0]), int(entry_str[1]))
+            # Wczzytuję położenie wejścia jako string.
+            entry_str = self.entry_entry.get()
+            # Rozdzielam string na tablicę według wzorca.
+            entry_str = entry_str.split(",")
+            # Zmieniam tablicę na tuple intigerów.
+            # ValueError oznacza zły format inputu.
+            entry_tuple = (int(entry_str[0]), int(entry_str[1]))
 
-        exit_str = self.exit_entry.get()
-        exit_str = exit_str.split(",")
-        exit_tuple = (int(exit_str[0]), int(exit_str[1]))
+            # Sprawdzam, czy wejście znajduje się na krawędzi labiryntu.
+            # Jeśli nie jest na krawędzi zachodniej lub wschodniej.
+            if entry_tuple[0] and entry_tuple[0] is not dim_tuple[0] - 1:
+                # Jeśli nie jest na krawędzi północnej lub południowej.
+                if entry_tuple[1] and entry_tuple[1] is not dim_tuple[1] - 1:
+                    raise my_exceptions.NotOnEdgeError
 
-        self.maze = maze.Maze(dim_tuple, entry_tuple, exit_tuple)
-        self.maze.generate()
-        self.inter_points = []
-        self.draw_maze()
+
+            # Wczzytuję położenie wyjścia jako string.
+            exit_str = self.exit_entry.get()
+            # Rozdzielam string na tablicę według wzorca.
+            exit_str = exit_str.split(",")
+            # Zmieniam tablicę na tuple intigerów.
+            # ValueError oznacza zły format inputu.
+            exit_tuple = (int(exit_str[0]), int(exit_str[1]))
+
+            # Sprawdzam, czy wyjście znajduje się na krawędzi labiryntu.
+            # Jeśli nie jest na krawędzi zachodniej lub wschodniej.
+            if entry_tuple[0] and entry_tuple[0] is not dim_tuple[0] - 1:
+                # Jeśli nie jest na krawędzi północnej lub południowej.
+                if entry_tuple[1] and entry_tuple[1] is not dim_tuple[1] - 1:
+                    raise my_exceptions.NotOnEdgeError
+
+            # Sprawdzam, czy wejście i wyjście nie są obok siebie.
+            # Czy nie są w tym samym punkcie.
+            if entry_tuple[0] is exit_tuple[0] and entry_tuple[1] is exit_tuple[1]:
+                raise my_exceptions.ToCloseError
+            # Sprawdzam, czy nie są obok siebie.
+            # Są dokładnie 4 przypadki, którę sprawdzam.
+            # 2 gdy są w tym samym rzędzie.
+            elif entry_tuple[0] is exit_tuple[0]:
+                #Jeśli są sąsiadami.
+                if entry_tuple[1] is exit_tuple[1] + 1 or entry_tuple[1] is exit_tuple[1] - 1:
+                    raise my_exceptions.ToCloseError
+            # 2 gdy są w tej samej kolumnie.
+            elif entry_tuple[1] is exit_tuple[1]:
+                # Jeśli są sąsiadami.
+                if entry_tuple[0] is exit_tuple[0] + 1 or entry_tuple[0] is exit_tuple[0] - 1:
+                    raise my_exceptions.ToCloseError
+
+            self.maze = maze.Maze(dim_tuple, entry_tuple, exit_tuple)
+            self.maze.generate()
+            # Czyszczę tablicę punktów pośrednich.
+            self.inter_points = []
+            self.draw_maze()
+
+        except my_exceptions.ToLargeError:
+            messagebox.showerror("Dimmensions error",
+                                 "Maze dimmensions can't be greater than 30.")
+        except my_exceptions.ToSmallError:
+            messagebox.showerror("Dimmensions error",
+                                 "Maze dimmensions can't be smaller than 5.")
+        except ValueError:
+            messagebox.showerror("Format Error",
+                                 "Dimmensions must be in IntxInt format\n" +
+                                 "Coodinates must be in Int,Int format.")
+        except my_exceptions.NotOnEdgeError:
+            messagebox.showerror("Coordinates Error",
+                                 "Entry and Exit must be on the mazes edge.")
+        except my_exceptions.ToCloseError:
+            messagebox.showerror("Coordinates Error",
+                                 "Entry and Exit cannot touch.")
 
     def draw_maze(self):
         '''Rysuje labirynt na podstawie zmiennych klasy'''
@@ -251,8 +326,6 @@ class MyGUI:
             self.maze_canvas.create_rectangle(x * CANVAS_DIM, (self.maze.y_max - y - 1)
                                               * CANVAS_DIM, (x + 1) * CANVAS_DIM, (self.maze.y_max - y)
                                               * CANVAS_DIM, fill="red")
-
-
 
     def draw_path(self, path):
         for x, y in path:

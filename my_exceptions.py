@@ -1,8 +1,3 @@
-
-class FormatError(Exception):
-    """Podnoszona, gdy input ma zły format inputu."""
-    pass
-
 class ToLargeError(ValueError):
     """Podnoszona, gdy labirynt jest za duży."""
     pass
@@ -11,6 +6,9 @@ class ToSmallError(ValueError):
     """Podnoszona, gdy labirynt jest za mały."""
     pass
 
-class ToCloseException(Exception):
+class NotOnEdgeError(Exception):
+    """Podnoszona, gdy entry lub exit nie znajduje się na krawędzi labiryntu"""
+
+class ToCloseError(Exception):
     """Podnoszona, gdy wejście i wyjście są za blisko siebie."""
     pass
